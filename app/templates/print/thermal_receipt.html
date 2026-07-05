@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Receipt {{ invoice.invoice_number }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body style="background:#fff;">
+<div class="print-receipt">
+
+  <div class="r-center">
+    <div class="r-shop-name">{{ settings.shop_name }}</div>
+    {% if settings.address %}<div>{{ settings.address }}</div>{% endif %}
+    {% if settings.phone %}<div>{{ settings.phone }}</div>{% endif %}
+  </div>
+
+  <hr>
+
+  <div class="r-row"><span>{{ invoice.invoice_number }}</span><span>{{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</span></div>
+  <div>Bill To: {{ invoice.customer.name if invoice.customer else 'Walk-in Customer' }}</div>
+  <div class="r-muted">Served by: {{ invoice.staff.name }}</div>
+
+  <hr>
+
+  {% for item in invoice.items %}
+  <div class="r-row">
+    <span class="r-label">{{ item.qty }}x {{ item.description }}</span>
+    <span class="r-amt">{{ item.line_total|money }}</span>
+  </div>
+  {% endfor %}
+
+  <hr>
+
+  <div class="r-row"><span>Subtotal</span><span class="r-amt">{{ invoice.subtotal|money }}</span></div>
+  {% if invoice.loyalty_discount %}<div class="r-row"><span>Loyalty Discount</span><span class="r-amt">-{{ invoice.loyalty_discount|money }}</span></div>{% endif %}
+  {% if invoice.gst_amount %}<div class="r-row"><span>GST</span><span class="r-amt">{{ invoice.gst_amount|money }}</span></div>{% endif %}
+  {% if invoice.pst_amount %}<div class="r-row"><span>PST</span><span class="r-amt">{{ invoice.pst_amount|money }}</span></div>{% endif %}
+  {% if invoice.hst_amount %}<div class="r-row"><span>HST</span><span class="r-amt">{{ invoice.hst_amount|money }}</span></div>{% endif %}
+  {% if invoice.store_credit_used %}<div class="r-row"><span>Store Credit Applied</span><span class="r-amt">-{{ invoice.store_credit_used|money }}</span></div>{% endif %}
+
+  <hr>
+
+  <div class="r-row r-grand"><span>TOTAL</span><span class="r-amt">{{ invoice.total|money }}</span></div>
+
+  <div class="r-row r-muted" style="margin-top:4px;">
+    <span>Paid via</span><span class="r-amt" style="text-transform:capitalize;">{{ invoice.payment_method }}</span>
+  </div>
+
+  <hr>
+
+  {% if settings.invoice_footer_note %}
+  <div class="r-center">{{ settings.invoice_footer_note }}</div>
+  {% endif %}
+
+  <div class="no-print" style="text-align:center; margin-top:16px;">
+    <button class="btn btn-primary" onclick="window.print()">Print</button>
+    <a href="{{ url_for('pos.receipt', invoice_id=invoice.id) }}" class="btn btn-secondary">Full Invoice Version</a>
+  </div>
+
+</div>
+</body>
+</html>
